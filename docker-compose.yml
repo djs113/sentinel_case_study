@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  sentinel-case-study:
+    build: .
+    container_name: sentinel-case-study
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    networks:
+      - sentinel-net
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: sentinel-tunnel
+    restart: unless-stopped
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    command: tunnel run
+    networks:
+      - sentinel-net
+
+networks:
+  sentinel-net:
+    driver: bridge
+    name: sentinel-net

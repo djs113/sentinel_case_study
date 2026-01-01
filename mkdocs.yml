@@ -1,0 +1,37 @@
+site_name: "Sentinel: Kochi City Police Tactical Platform"
+site_description: "Technical Case Study: High-Performance Geospatial ETL & Urban Security Systems"
+site_author: "Daniel Julius Sam"
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: deep orange # Alert/Security color
+      accent: blue
+  features:
+    - navigation.sections
+    - navigation.expand
+    - content.code.copy
+    - toc.follow
+
+markdown_extensions:
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+nav:
+  - Mission Overview: index.md
+  - Platform Architecture: architecture.md
+  - Real-Time Telemetry:
+      - Ingestion Architecture: application/backend-api.md
+      - Stream Worker Logic: application/stream-worker.md
+  - Tactical Map Engine (ETL):
+      - Performance Engineering: geospatial/optimization.md
+      - Data Lifecycle: geospatial/etl-pipeline.md
+  - Infrastructure & Systems:
+      - Temporal Computing: infrastructure/hardware-automation.md
+      - Security & Cloud Delivery: infrastructure/cloud-strategy.md
+  
