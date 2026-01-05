@@ -25,13 +25,16 @@ markdown_extensions:
 nav:
   - Mission Overview: index.md
   - Platform Architecture: architecture.md
-  - Real-Time Telemetry:
-      - Ingestion Architecture: application/backend-api.md
-      - Stream Worker Logic: application/stream-worker.md
+  - Core Services:
+      - Real-Time Telemetry: application/backend-api.md
+      - Stream Processing Worker: application/stream-worker.md
+      - Hotspot Proximity Engine: geospatial/hotspot-proximity-engine.md
+      - Routing Engine: application/routing-engine.md
   - Tactical Map Engine (ETL):
       - Performance Engineering: geospatial/optimization.md
       - Data Lifecycle: geospatial/etl-pipeline.md
   - Infrastructure & Systems:
       - Temporal Computing: infrastructure/hardware-automation.md
       - Security & Cloud Delivery: infrastructure/cloud-strategy.md
-  
+      - Edge Tile Server (Worker): infrastructure/pmtiles-worker.md
+      - Automated Deployment (CI/CD): infrastructure/automated-deployment.md
