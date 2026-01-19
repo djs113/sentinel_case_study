@@ -10,18 +10,54 @@ While the API handles thousands of incoming requests per second, the Worker ensu
 The worker operates on an infinite loop with a **Batch-and-Flush** strategy:
 
 ```mermaid
-graph TD
-    A[Start Loop] --> B{Stream Empty?}
-    B -- Yes --> C[Block for N ms]
-    B -- No --> D[Fetch Batch via XREADGROUP]
-    D --> E[Group by Patrol ID]
-    E --> F[Check Redis State Machine]
-    F --> G[Construct Aggregation Pipelines]
-    G --> H[MongoDB Bulk Write]
-    H --> I[Update Redis State]
-    I --> J[ACK Messages]
-    J --> A
+%%{
+  init: {
+    'theme': 'base',
+    'themeVariables': {
+      'primaryColor': '#1e1e1e',
+      'primaryTextColor': '#e0e0e0',
+      'primaryBorderColor': '#444',
+      'lineColor': '#a9b7c6',
+      'secondaryColor': '#2d2d2d',
+      'tertiaryColor': '#2d2d2d'
+    }
+  }
+}%%
+flowchart TD
+    subgraph Worker_Process [Asynchronous Worker Loop]
+        direction TB
+
+        %% --- NODES ---
+        A([<b>START LOOP</b>]):::start_end
+        B{<b style='color:#ffb74d'>STREAM EMPTY?</b>}:::decision
+        C(⏳ <b>BLOCK & WAIT</b><br/><i style='font-size:12px; color:#aaa'>for new messages</i>):::wait
+        
+        D(📥 <b>FETCH BATCH</b><br/><i style='font-size:12px; color:#aaa'>XREADGROUP from Redis</i>):::io
+        E(🗂️ <b>GROUP EVENTS</b><br/><i style='font-size:12px; color:#aaa'>by Patrol ID & Status</i>):::processing
+        F(🚦 <b>CHECK STATE</b><br/><i style='font-size:12px; color:#aaa'>Query Redis State Machine</i>):::io
+        
+        G(🔨 <b>BUILD OPERATIONS</b><br/><i style='font-size:12px; color:#aaa'>Construct Mongo Aggregations</i>):::processing
+        H(💾 <b>BULK WRITE</b><br/><i style='font-size:12px; color:#aaa'>Persist to MongoDB</i>):::db
+        I(📝 <b>UPDATE STATE</b><br/><i style='font-size:12px; color:#aaa'>HSET new status in Redis</i>):::io
+        J(✅ <b>ACKNOWLEDGE</b><br/><i style='font-size:12px; color:#aaa'>XACK processed messages</i>):::io
+        
+        %% --- FLOW ---
+        A --> B
+        B -- "Yes" --> C --> A
+        B -- "No" --> D
+        D --> E --> F --> G --> H --> I --> J --> A
+        
+    end
+
+    %% --- STYLING ---
+    classDef start_end fill:#004d40,stroke:#26a69a,stroke-width:2px,color:#e0f2f1;
+    classDef decision fill:#3e2723,stroke:#ff5722,stroke-width:2px,color:#fff;
+    classDef wait fill:#37474f,stroke:#90a4ae,stroke-width:2px,color:#eceff1;
+    classDef io fill:#0d47a1,stroke:#42a5f5,stroke-width:2px,color:#e3f2fd;
+    classDef processing fill:#4a148c,stroke:#ab47bc,stroke-width:2px,color:#e1bee7;
+    classDef db fill:#1b5e20,stroke:#66bb6a,stroke-width:3px,color:#e8f5e9;
 ```
+
 ## 2. Redis Stream Consumer Strategy
 The worker utilizes **Redis Consumer Groups** (`mongo_writer_group`) to enable horizontal scalability.
 

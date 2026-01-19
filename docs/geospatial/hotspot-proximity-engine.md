@@ -11,20 +11,64 @@ The business logic is complex. The system must first check for recent "auto-visi
 A naive implementation of this logic resulted in **6-7 sequential database calls**, leading to high API latency and a poor user experience for the officer in the field.
 
 ### Initial (Suboptimal) Workflow
+
 ```mermaid
-graph TD
-    A[API Request] --> B{Auto-Visits?}
-    B --> C[1. Get Geofence Logs]
-    C --> D[2. Get Remarks]
-    D --> E{Any Unremarked?}
-    E -- Yes --> F[6. Get Hotspot Details]
-    E -- No --> G[3. Get Patrol Lists]
-    G --> H[4. Get All Hotspot Coords]
-    H --> I[Python: Find Closest]
-    I --> J[5. Get Hotspot Details]
-    J --> K[6. Get Factors]
-    F --> L[Response]
+%%{
+  init: {
+    'theme': 'base',
+    'themeVariables': {
+      'primaryColor': '#1e1e1e',
+      'primaryTextColor': '#e0e0e0',
+      'primaryBorderColor': '#444',
+      'lineColor': '#a9b7c6',
+      'secondaryColor': '#2d2d2d',
+      'tertiaryColor': '#2d2d2d'
+    }
+  }
+}%%
+flowchart TD
+    %% --- DEFINE NODES ---
+    A([🌐 <b>API Request</b>]):::start_end
+    B{<b style='color:#ffb74d'>Auto-Visit Pending?</b>}:::decision
+    
+    C(💾 <b>1. Get Geofence Logs</b><br/><i style='font-size:12px; color:#aaa'>DB Call #1</i>):::db_call
+    D(💾 <b>2. Get Remarks</b><br/><i style='font-size:12px; color:#aaa'>DB Call #2</i>):::db_call
+    E{<b style='color:#ffb74d'>Unremarked Found?</b>}:::decision
+    
+    F(💾 <b>6. Get Hotspot Details</b><br/><i style='font-size:12px; color:#aaa'>DB Call #6</i>):::db_call
+    
+    G(💾 <b>3. Get Patrol Lists</b><br/><i style='font-size:12px; color:#aaa'>DB Call #3</i>):::db_call
+    H(💾 <b>4. Get All Coords</b><br/><i style='font-size:12px; color:#aaa'>DB Call #4</i>):::db_call
+    I(🐍 <b>Python: Find Closest</b><br/><i style='font-size:12px; color:#aaa'>App-Side CPU</i>):::logic
+    J(💾 <b>5. Get Hotspot Details</b><br/><i style='font-size:12px; color:#aaa'>DB Call #5</i>):::logic
+    K(💾 <b>+ Get Factors</b><br/><i style='font-size:12px; color:#aaa'>DB Call #7</i>):::db_call
+
+    L([✅ <b>Response</b>]):::start_end
+    
+    %% --- DEFINE FLOW ---
+    A --> B
+    B -- No --> G
+    B -- Yes --> C
+    
+    C --> D
+    D --> E
+    
+    E -- Yes --> F
+    E -- No --> G
+    
+    G --> H
+    H --> I
+    I --> J
+    J --> K
+    
+    F --> L
     K --> L
+
+    %% --- STYLING ---
+    classDef start_end fill:#004d40,stroke:#26a69a,stroke-width:2px,color:#e0f2f1;
+    classDef decision fill:#3e2723,stroke:#ff5722,stroke-width:2px,color:#fff;
+    classDef db_call fill:#1a237e,stroke:#7986cb,stroke-width:2px,color:#e8eaf6;
+    classDef logic fill:#4a148c,stroke:#ab47bc,stroke-width:2px,color:#e1bee7;
 ```
 **Problem**: This "waterfall" of await calls was unscalable.
 ## 2. The Optimized Architecture: A Pragmatic Hybrid Strategy

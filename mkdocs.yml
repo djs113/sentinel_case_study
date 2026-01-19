@@ -30,9 +30,11 @@ nav:
       - Stream Processing Worker: application/stream-worker.md
       - Hotspot Proximity Engine: geospatial/hotspot-proximity-engine.md
       - Routing Engine: application/routing-engine.md
-  - Tactical Map Engine (ETL):
-      - Performance Engineering: geospatial/optimization.md
-      - Data Lifecycle: geospatial/etl-pipeline.md
+  - Data Engineering & Analytics:
+      - Warehouse ETL Pipeline: data-engineering/warehouse-etl.md
+      - Analytical Data Modeling (ClickHouse): data-engineering/data-modeling.md
+      - Tactical Map Engine (PostGIS ETL): data-engineering/map-tile-etl.md
+      - Performance Tuning (PostGIS): geospatial/optimization.md
   - Infrastructure & Systems:
       - Temporal Computing: infrastructure/hardware-automation.md
       - Security & Cloud Delivery: infrastructure/cloud-strategy.md
