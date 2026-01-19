@@ -11,7 +11,6 @@ The business logic is complex. The system must first check for recent "auto-visi
 A naive implementation of this logic resulted in **6-7 sequential database calls**, leading to high API latency and a poor user experience for the officer in the field.
 
 ### Initial (Suboptimal) Workflow
-
 ```mermaid
 %%{
   init: {
@@ -77,12 +76,52 @@ To solve the latency issue, I re-architected the service to use a **Hybrid Query
 
 ### The Refactored Workflow
 ```mermaid
-graph TD
-    A["API Request"] --> B{"Check for Auto-Visit"}
-    B -- "Found" --> D["<b>2. Final Fetch</b><br/>(Hotspot + Factors)"]
-    B -- "Not Found" --> C["<b>1. DB: Find Closest Unvisited</b>"]
-    C --> D
-    D --> E["Response"]
+%%{
+  init: {
+    'theme': 'base',
+    'themeVariables': {
+      'primaryColor': '#1e1e1e',
+      'primaryTextColor': '#e0e0e0',
+      'primaryBorderColor': '#444',
+      'lineColor': '#a9b7c6',
+      'secondaryColor': '#2d2d2d',
+      'tertiaryColor': '#2d2d2d'
+    }
+  }
+}%%
+flowchart TD
+    %% --- DEFINE NODES ---
+    A([🌐 <b>API Request</b>]):::start_end
+    B{<b style='color:#ffb74d'>Auto-Visit Pending?</b>}:::decision
+    
+    C(💾 <b>1. Find Closest Unvisited</b><br/><i style='font-size:12px; color:#aaa'>Single SQL Query with JOIN & earth_distance</i>):::db_call
+    
+    D(💾 <b>2. Fetch Details</b><br/><i style='font-size:12px; color:#aaa'>Single SQL Query with JOIN</i>):::db_call
+    
+    E([✅ <b>Response</b>]):::start_end
+    
+    %% --- DEFINE FLOW ---
+    A --> B
+    
+    subgraph Fast_Path [Fast Path]
+        direction TB
+        style Fast_Path fill:none,stroke:none
+        B -- "Yes (1 DB Call)" --> D
+    end
+    
+    subgraph Slow_Path [Fallback Path]
+        direction TB
+        style Slow_Path fill:none,stroke:none
+        B -- "No (2 DB Calls)" --> C
+        C --> D
+    end
+    
+    D --> E
+
+    %% --- STYLING ---
+    classDef start_end fill:#004d40,stroke:#26a69a,stroke-width:2px,color:#e0f2f1;
+    classDef decision fill:#3e2723,stroke:#ff5722,stroke-width:2px,color:#fff;
+    classDef db_call fill:#1a237e,stroke:#7986cb,stroke-width:2px,color:#e8eaf6;
 ```
 ## 3. Technical Deep Dive: The Two-Step Query
 
