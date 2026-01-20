@@ -54,18 +54,84 @@ flowchart TD
     classDef db_call fill:#1a237e,stroke:#7986cb,stroke-width:2px,color:#e8eaf6;
 ```
 
+## 2. Patrol State Lifecycle
+
+The routing engine is not just a set of disconnected endpoints; it manages the state of a patrol session from start to finish. The officer's status in the database dictates which routing logic is applied.
+
 ```mermaid
+%%{
+  init: {
+    'theme': 'base',
+    'themeVariables': {
+      'primaryColor': '#1e1e1e',
+      'primaryTextColor': '#e0e0e0',
+      'primaryBorderColor': '#444',
+      'lineColor': '#a9b7c6',
+      'secondaryColor': '#2d2d2d',
+      'tertiaryColor': '#2d2d2d',
+      'fontFamily': 'arial',
+      'fontSize': '14px'
+    }
+  }
+}%%
 stateDiagram-v2
-    [*] --> Pending: SHO Selects Hotspots
+    direction LR
+
+    [*] --> Pending
     Pending --> Patrolling: POST /generate_route
-    Patrolling --> Paused: Officer action
-    Paused --> Patrolling: Officer action
+    Patrolling --> Paused: Officer Action
+    Paused --> Patrolling: Officer Action
     Patrolling --> Emergency: POST /get_emergency_route
     Emergency --> Rerouting: POST /reroute_from_emergency
     Rerouting --> Patrolling
-    Patrolling --> Completed: All hotspots visited
+    Patrolling --> Completed
     Completed --> [*]
+
+    note left of Pending
+        <b>Initiation Phase</b><br/>
+        SHO selects hotspots for the shift.
+    end note
+
+    note left of Patrolling
+        <b>Normal Operations</b><br/>
+        Officer follows the LKH-optimized route.
+    end note
+    
+    note right of Paused
+        <b>Temporary Halt</b><br/>
+        Officer is on a break or handling<br/>
+        a non-emergency task.
+    end note
+    
+    note right of Emergency
+        <b>High-Alert State</b><br/>
+        A* algorithm provides the fastest<br/>
+        point-to-point route.
+    end note
+    
+    note right of Rerouting
+        <b>Re-assessment Phase</b><br/>
+        LKH algorithm re-calculates the<br/>
+        optimal path for remaining hotspots.
+    end note
+
+    %% Styling
+    state "Patrolling" as Patrolling
+    state "Paused" as Paused
+    state "Emergency" as Emergency
+    state "Rerouting" as Rerouting
+
+    style Patrolling fill:#01579b,stroke:#81d4fa,color:#e3f2fd
+    style Paused fill:#37474f,stroke:#90a4ae,color:#eceff1
+    style Emergency fill:#b71c1c,stroke:#ff8a80,stroke-width:3px,color:#fff
+    style Rerouting fill:#bf360c,stroke:#ffab91,stroke-width:2px,color:#fff
 ```
+<p align="center" style="margin-top: 1em; font-style: italic; color: #888;">
+  <a id="state-diagram-link" href="/assets/images/state-diagram-fullscreen.png" class="glightbox" data-title="Detailed State Transition Diagram">
+    Click here to view fullscreen
+  </a>
+</p>
+
 ## 3. The Underlying Road Network Graph
 The routing algorithms do not operate on raw map tiles. They operate on a pre-processed **road network graph**.
 
