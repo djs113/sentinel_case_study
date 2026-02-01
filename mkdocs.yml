@@ -26,7 +26,8 @@ nav:
   - Mission Overview: index.md
   - Platform Architecture: architecture.md
   - Core Services:
-      - Real-Time Telemetry: application/backend-api.md
+      - Telemetry Ingestion API: application/backend-api.md
+      - Real-Time Data Distribution (Pub/Sub): application/telemetry-orchestration.md
       - Stream Processing Worker: application/stream-worker.md
       - Hotspot Proximity Engine: geospatial/hotspot-proximity-engine.md
       - Routing Engine: application/routing-engine.md
@@ -34,6 +35,8 @@ nav:
       - Warehouse ETL Pipeline: data-engineering/warehouse-etl.md
       - Analytical Data Modeling (ClickHouse): data-engineering/data-modeling.md
       - Tactical Map Engine (PostGIS ETL): data-engineering/map-tile-etl.md
+      - High-Performance Caching (ETags): data-engineering/caching-strategy.md
+      - Geospatial Analytics Deep-Dive: data-engineering/geospatial-analytics.md
       - Performance Tuning (PostGIS): geospatial/optimization.md
   - Infrastructure & Systems:
       - Temporal Computing: infrastructure/hardware-automation.md
